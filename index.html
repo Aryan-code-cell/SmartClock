@@ -63,12 +63,33 @@
         .note-time {
             color: #E94560;
             font-size: 0.9rem;
+            min-width: 80px;
         }
 
         .note-text {
             color: #F9F9F9;
             margin-left: 1rem;
             flex-grow: 1;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .btn-edit {
+            background-color: #0F3460;
+            color: #F9F9F9;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit:hover {
+            background-color: #E94560;
         }
 
         h1 {
@@ -159,6 +180,8 @@
         let notes = [];
         const modal = document.getElementById('noteModal');
         const noteInput = document.getElementById('noteInput');
+        const saveButton = document.getElementById('saveNote');
+        let editingIndex = -1;
 
         function updateClock() {
             const now = new Date();
@@ -171,17 +194,22 @@
             document.getElementById('clock').textContent = timeString;
         }
 
-        function showModal() {
+        function showModal(isEdit = false, index = -1, text = '') {
             modal.classList.add('show');
+            noteInput.value = text;
             noteInput.focus();
+            editingIndex = index;
+            saveButton.textContent = isEdit ? 'Update' : 'Save';
         }
 
         function hideModal() {
             modal.classList.remove('show');
             noteInput.value = '';
+            editingIndex = -1;
+            saveButton.textContent = 'Save';
         }
 
-        function addNote() {
+        function addOrUpdateNote() {
             const text = noteInput.value.trim();
             if (text) {
                 const now = new Date();
@@ -194,35 +222,51 @@
                     }),
                     text: text
                 };
-                notes.push(note);
+
+                if (editingIndex >= 0) {
+                    // Keep the original time for edits
+                    note.time = notes[editingIndex].time;
+                    notes[editingIndex] = note;
+                } else {
+                    notes.push(note);
+                }
+
                 displayNotes();
                 hideModal();
             }
         }
 
+        function editNote(index) {
+            const note = notes[index];
+            showModal(true, index, note.text);
+        }
+
         function displayNotes() {
             const container = document.getElementById('notesContainer');
             container.innerHTML = '';
-            notes.forEach(note => {
+            notes.forEach((note, index) => {
                 const noteElement = document.createElement('div');
                 noteElement.className = 'note';
                 noteElement.innerHTML = `
                     <span class="note-time">${note.time}</span>
                     <span class="note-text">${note.text}</span>
+                    <div class="note-actions">
+                        <button class="btn-edit" onclick="editNote(${index})">Edit</button>
+                    </div>
                 `;
                 container.appendChild(noteElement);
             });
         }
 
         // Event Listeners
-        document.getElementById('addNote').addEventListener('click', showModal);
+        document.getElementById('addNote').addEventListener('click', () => showModal());
         document.getElementById('cancelNote').addEventListener('click', hideModal);
-        document.getElementById('saveNote').addEventListener('click', addNote);
+        document.getElementById('saveNote').addEventListener('click', addOrUpdateNote);
         
         // Handle Enter key in input
         noteInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                addNote();
+                addOrUpdateNote();
             }
         });
 
