@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Clock & Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #1A1A2E;
+            color: #F9F9F9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .clock {
+            font-size: 6rem;
+            font-weight: 300;
+            margin: 2rem 0;
+            color: #E94560;
+        }
+
+        .btn-add {
+            background-color: #0F3460;
+            color: #F9F9F9;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-add:hover {
+            background-color: #16213E;
+        }
+
+        .notes-container {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .note {
+            background-color: #16213E;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .note-time {
+            color: #E94560;
+            font-size: 0.9rem;
+        }
+
+        .note-text {
+            color: #F9F9F9;
+            margin-left: 1rem;
+            flex-grow: 1;
+        }
+
+        h1 {
+            color: #F9F9F9;
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #16213E;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: none;
+            border-radius: 0.3rem;
+            background-color: #1A1A2E;
+            color: #F9F9F9;
+            font-size: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .modal button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.3rem;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: #E94560;
+            color: #F9F9F9;
+        }
+
+        .btn-cancel {
+            background-color: #0F3460;
+            color: #F9F9F9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minimal Clock & Notes</h1>
+    <div class="clock" id="clock"></div>
+    <button class="btn-add" id="addNote">Add Note</button>
+    <div class="notes-container" id="notesContainer"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <input type="text" id="noteInput" placeholder="Enter your note" autofocus>
+            <div class="modal-buttons">
+                <button class="btn-cancel" id="cancelNote">Cancel</button>
+                <button class="btn-save" id="saveNote">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let notes = [];
+        const modal = document.getElementById('noteModal');
+        const noteInput = document.getElementById('noteInput');
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        function showModal() {
+            modal.classList.add('show');
+            noteInput.focus();
+        }
+
+        function hideModal() {
+            modal.classList.remove('show');
+            noteInput.value = '';
+        }
+
+        function addNote() {
+            const text = noteInput.value.trim();
+            if (text) {
+                const now = new Date();
+                const note = {
+                    time: now.toLocaleTimeString('en-US', { 
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    }),
+                    text: text
+                };
+                notes.push(note);
+                displayNotes();
+                hideModal();
+            }
+        }
+
+        function displayNotes() {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = '';
+            notes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note';
+                noteElement.innerHTML = `
+                    <span class="note-time">${note.time}</span>
+                    <span class="note-text">${note.text}</span>
+                `;
+                container.appendChild(noteElement);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('addNote').addEventListener('click', showModal);
+        document.getElementById('cancelNote').addEventListener('click', hideModal);
+        document.getElementById('saveNote').addEventListener('click', addNote);
+        
+        // Handle Enter key in input
+        noteInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addNote();
+            }
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+
+        // Initialize clock
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
