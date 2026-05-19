@@ -1,0 +1,30 @@
+USE abc;
+
+-- Replace 'ABC00001' with your target CollectionID
+DECLARE @CollectionID VARCHAR(8) = 'ABC00001';
+
+SELECT
+    c.Name                              AS CollectionName,
+    c.CollectionID,
+    rs.Name0                            AS DeviceName,
+    ad.ApplicationName,
+    ad.EnforcementState                 AS DeploymentState,
+    ad.ComplianceState,
+    ad.LastEnforcementMessageTime       AS LastStateChangeTime
+
+FROM
+    abc.dbo.v_Collection                AS c
+    JOIN abc.dbo.v_FullCollectionMembership AS fcm
+        ON fcm.CollectionID = c.CollectionID
+    JOIN abc.dbo.v_R_System             AS rs
+        ON rs.ResourceID = fcm.ResourceID
+    JOIN abc.dbo.v_AppDeploymentAssetDetails AS ad
+        ON ad.ResourceID   = fcm.ResourceID
+       AND ad.CollectionID = c.CollectionID
+
+WHERE
+    c.CollectionID = @CollectionID
+
+ORDER BY
+    ad.ApplicationName,
+    rs.Name0;
